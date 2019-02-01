@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+
+  redis:
+    container_name: redis
+    image: redis
+
+  web:
+    container_name: web
+    environment:
+      REDIS_URL: redis://redis:6379
+    build:
+      context: ./web/
+    restart: always
+    privileged: true
+    depends_on:
+      - redis
+
+  kaldi:
+    container_name: kaldi
+    environment:
+      REDIS_URL: redis://redis:6379
+      RQ_WORKERS: 10
+      TMP_DIR: /tmp/
+    build:
+      context: .
+      dockerfile: ./kaldi/Dockerfile
+    volumes:
+        - /var/log/flask-kaldi-api:/tmp
+        - /var/lib/flask-kaldi-api:/tmp
+    restart: always
+    privileged: true
+    depends_on:
+      - web
+
+  nginx:
+    container_name: nginx
+    restart: always
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web

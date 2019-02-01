@@ -1,0 +1,12 @@
+[Unit]
+Description=Flask ASR Kaldi API
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=/usr/bin/docker-compose -f /opt/api-sr/docker-compose.yml up --build
+ExecStop=/usr/bin/docker-compose -f /opt/api-sr/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
+
