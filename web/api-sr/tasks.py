@@ -4,6 +4,8 @@ import librosa
 import soundfile as sf
 import io
 import os
+from subprocess import Popen, PIPE
+import re
 
 
 def save_wav(wav_data, outfile, samplerate=8000, subtype='PCM_16'):
@@ -15,13 +17,28 @@ def save_wav(wav_data, outfile, samplerate=8000, subtype='PCM_16'):
         data = librosa.resample(data, sr, samplerate)
 
         sf.write(outfile, data, samplerate, subtype=subtype)
-        return True
+        return librosa.get_duration(y=data, sr=samplerate)
     except:
-        return False
+        return None
 
 
-def kaldi_decode(wav_file):
-    return 'Test', 10
+def kaldi_decode(folder, duration):
+
+    scp = os.path.join(folder, 'wav.scp')
+    f = open(scp, 'w')
+    f.write('decoder-test {}'.format(os.path.join(folder, 'speech.wav')))
+    f.close()
+
+    with Popen("cd /opt/model && ./decode.sh {}".format(scp), shell=True, stdout=PIPE, stderr=PIPE) as p:
+        output, errors = p.communicate()
+        try:
+            text = re.search(r'decoder-test (.*)', errors.decode('utf-8')).group(1)
+        except:
+            text = ''
+
+    tempo = len(text.replace(' ', '')) / duration
+
+    return text, tempo
 
 
 def wav_to_text(wav_data, tmp_folder):
@@ -35,10 +52,11 @@ def wav_to_text(wav_data, tmp_folder):
         os.makedirs(folder)
         wav_file = os.path.join(folder, 'speech.wav')
 
-        if not save_wav(wav_data, wav_file):
+        duration = save_wav(wav_data, wav_file)
+        if not duration:
             return None, 400
 
-        result, speech_speed = kaldi_decode(wav_file)
+        result, speech_speed = kaldi_decode(folder, duration)
 
         job_finished = datetime.datetime.now()
 

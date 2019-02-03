@@ -10,6 +10,7 @@ services:
     container_name: web
     environment:
       REDIS_URL: redis://redis:6379
+      TMP_DIR: /tmp/
     build:
       context: ./web/
     restart: always

@@ -64,7 +64,7 @@ def not_found():
 
 
 @app.errorhandler(500)
-def bad_request():
+def bad_internal():
     return make_response(jsonify(error='Internal error'), 500)
 
 
