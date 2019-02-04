@@ -28,8 +28,7 @@ services:
       context: .
       dockerfile: ./kaldi/Dockerfile
     volumes:
-        - /var/log/flask-kaldi-api:/tmp
-        - /var/lib/flask-kaldi-api:/tmp
+        - /tmp/flask-kaldi-api:/tmp
     restart: always
     privileged: true
     depends_on:

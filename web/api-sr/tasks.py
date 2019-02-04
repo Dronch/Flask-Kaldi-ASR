@@ -6,6 +6,7 @@ import io
 import os
 from subprocess import Popen, PIPE
 import re
+import numpy as np
 
 
 def save_wav(wav_data, outfile, samplerate=8000, subtype='PCM_16'):
@@ -13,7 +14,8 @@ def save_wav(wav_data, outfile, samplerate=8000, subtype='PCM_16'):
         tmp = io.BytesIO(wav_data)
         data, sr = sf.read(tmp)
 
-        data = librosa.to_mono(data)
+        if data.ndim > 1: 
+            data = np.mean(data, axis=0 if data.shape[0] == 2 else 1)
         data = librosa.resample(data, sr, samplerate)
 
         sf.write(outfile, data, samplerate, subtype=subtype)
@@ -67,5 +69,6 @@ def wav_to_text(wav_data, tmp_folder):
             'job_finished': job_finished,
             'speech_speed': speech_speed
                }, 200
-    except:
+    except Exception as e:
+        print('Internal error:', e)
         return None, 500
